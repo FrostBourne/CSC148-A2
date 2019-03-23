@@ -107,6 +107,15 @@ class TMTree:
             self._expanded = True
         else:
             self._expanded = False
+        self._colour = (randint(1, 255), randint(1, 255), randint(1, 255))
+
+        # Not sure if thats what task is asking
+        # setting size of tree to be total of size of all subtrees
+        for s in self._subtrees:
+            data_size += s.data_size
+            # can I do this? / this is part 2 setting this tree as parent
+            s._parent_tree = self
+        self.data_size = data_size
 
         # TODO: (Task 1) Complete this initializer by doing two things:
         # 1. Initialize self._colour and self.data_size, according to the
