@@ -240,6 +240,31 @@ class FileSystemTree(TMTree):
         # encountered.
         #
         # Also remember to make good use of the superclass constructor!
+
+
+        # grabs all the files
+        if os.path.isdir(path):
+            for filename in os.listdir(path):
+                # subitem is the next path
+                subitem = os.path.join(path, filename)
+                # subtrees start empty
+                subtrees = []
+                # advances if current is not a file
+                if os.path.isdir(subitem):
+                    # creates a subtree of file system trees
+                    subtrees.append(FileSystemTree(subitem))
+                    # size would be zero
+                    size = 0
+                else:
+                    # size would be the file size
+                    size = os.path.getsize(filename)
+                # call to super class
+                TMTree.__init__(self, filename, subtrees, size)
+        else:
+            TMTree.__init__(self, os.path.split(path)[-1], [],
+                            os.path.getsize(path))
+
+
         # TODO: (Task 1) Implement the initializer
 
     def get_separator(self) -> str:
