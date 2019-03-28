@@ -131,6 +131,22 @@ class TMTree:
         """Update the rectangles in this tree and its descendents using the
         treemap algorithm to fill the area defined by pygame rectangle <rect>.
         """
+        x, y, width, height = rect
+        if self.is_empty():
+            return
+        elif self._subtrees ==[]:
+            self.rect = x, y, width, height
+        else:
+            for file in self._subtrees:
+                percent = file.data_size/self.data_size
+                rect_width = math.floor(percent * width)
+                if file is not self._subtrees[-1]:
+                    file.update_rectangles((x, y, rect_width, height))
+                    x += rect_width
+                else:
+                    rect_width = width - x
+                    file.update_rectangles((x, y, rect_width, height))
+
         # TODO: (Task 2) Complete the body of this method.
         # Read the handout carefully to help get started identifying base cases,
         # then write the outline of a recursive step.
@@ -146,6 +162,15 @@ class TMTree:
         appropriate pygame rectangle to display for a leaf, and the colour
         to fill it with.
         """
+        if self.is_empty():
+            return []
+        elif self._subtrees == []:
+            return [(self.rect, self._colour)]
+        else:
+            a = []
+            for s in self._subtrees:
+                a.extend(s.get_rectangles())
+            return a
         # TODO: (Task 2) Complete the body of this method.
 
     def get_tree_at_position(self, pos: Tuple[int, int]) -> Optional[TMTree]:
@@ -243,26 +268,19 @@ class FileSystemTree(TMTree):
 
 
         # grabs all the files
-        if os.path.isdir(path):
-            for filename in os.listdir(path):
-                # subitem is the next path
-                subitem = os.path.join(path, filename)
-                # subtrees start empty
-                subtrees = []
-                # advances if current is not a file
-                if os.path.isdir(subitem):
-                    # creates a subtree of file system trees
-                    subtrees.append(FileSystemTree(subitem))
-                    # size would be zero
-                    size = 0
-                else:
-                    # size would be the file size
-                    size = os.path.getsize(filename)
-                # call to super class
-                TMTree.__init__(self, filename, subtrees, size)
-        else:
+        if not os.path.isdir(path):
             TMTree.__init__(self, os.path.split(path)[-1], [],
                             os.path.getsize(path))
+        else:
+            subtrees = []
+            for filename in os.listdir(path):
+                subitem = os.path.join(path, filename)
+                subtrees.append(FileSystemTree(subitem))
+            size = 0
+            for sub in subtrees:
+                size += sub.data_size
+            TMTree.__init__(self, os.path.split(path)[-1], subtrees, 0)
+
 
 
         # TODO: (Task 1) Implement the initializer
