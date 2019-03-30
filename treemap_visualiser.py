@@ -1,4 +1,4 @@
-"""Assignment 2: Trees for Treemap
+"""Assignment 2: Treemap Visualiser
 
 === CSC148 Winter 2019 ===
 This code is provided solely for the personal and private use of
@@ -11,246 +11,225 @@ All of the files in this directory and all subdirectories are:
 Copyright (c) 2019 Bogdan Simion, David Liu, Diane Horton, Jacqueline Smith
 
 === Module Description ===
-This module contains the basic tree interface required by the treemap
-visualiser. You will both add to the abstract class, and complete a
-concrete implementation of a subclass to represent files and folders on your
-computer's file system.
+This module contains the main program code for the treemap visualisation.
+It is responsible for initializing an instance of TMTree (using a
+concrete subclass, of course), rendering it to the user using pygame,
+and detecting user events like mouse clicks and key presses and responding
+to them.
 """
-from __future__ import annotations
-import os
-import math
-from random import randint
-from typing import List, Tuple, Optional
+from typing import Optional, Tuple
+import pygame
+from tm_trees import TMTree, FileSystemTree
+from papers import PaperTree
 
 
-class TMTree:
-    """A TreeMappableTree: a tree that is compatible with the treemap
-    visualiser.
+# Screen dimensions and coordinates
+ORIGIN = (0, 0)
+# You may adjust these values as you'd like, depending on your screen resolution
+WIDTH = 800  # 1024
+HEIGHT = 600  # 768
+FONT_HEIGHT = 30                       # The height of the text display.
+TREEMAP_HEIGHT = HEIGHT - FONT_HEIGHT  # The height of the treemap display.
 
-    This is an abstract class that should not be instantiated directly.
+# Font to use for the treemap program.
+FONT_FAMILY = 'Consolas'
 
-    You may NOT add any attributes, public or private, to this class.
-    However, part of this assignment will involve you implementing new public
-    *methods* for this interface.
-    You should not add any new public methods other than those required by
-    the client code.
-    You can, however, freely add private methods as needed.
 
-    === Public Attributes ===
-    rect:
-        The pygame rectangle representing this node in the treemap
-        visualization.
-    data_size:
-        The size of the data represented by this tree.
-
-    === Private Attributes ===
-    _colour:
-        The RGB colour value of the root of this tree.
-    _name:
-        The root value of this tree, or None if this tree is empty.
-    _subtrees:
-        The subtrees of this tree.
-    _parent_tree:
-        The parent tree of this tree; i.e., the tree that contains this tree
-        as a subtree, or None if this tree is not part of a larger tree.
-    _expanded:
-        Whether or not this tree is considered expanded for visualization.
-
-    === Representation Invariants ===
-    - data_size >= 0
-    - If _subtrees is not empty, then data_size is equal to the sum of the
-      data_size of each subtree.
-
-    - _colour's elements are each in the range 0-255.
-
-    - If _name is None, then _subtrees is empty, _parent_tree is None, and
-      data_size is 0.
-      This setting of attributes represents an empty tree.
-
-    - if _parent_tree is not None, then self is in _parent_tree._subtrees
-
-    - if _expanded is True, then _parent_tree._expanded is True
-    - if _expanded is False, then _expanded is False for every tree
-      in _subtrees
-    - if _subtrees is empty, then _expanded is False
+def run_visualisation(tree: TMTree) -> None:
+    """Display an interactive graphical display of the given tree's treemap.
     """
 
-    rect: Tuple[int, int, int, int]
-    data_size: int
-    _colour: Tuple[int, int, int]
-    _name: str
-    _subtrees: List[TMTree]
-    _parent_tree: Optional[TMTree]
-    _expanded: bool
+    # Setup pygame
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    def __init__(self, name: str, subtrees: List[TMTree],
-                 data_size: int = 0) -> None:
-        """Initialize a new TMTree with a random colour and the provided <name>.
+    # Render the initial display of the static treemap.
+    render_display(screen, tree, None, None)
+    tree.update_rectangles((0, 0, WIDTH, HEIGHT - FONT_HEIGHT))
 
-        If <subtrees> is empty, use <data_size> to initialize this tree's
-        data_size.
-
-        If <subtrees> is not empty, ignore the parameter <data_size>,
-        and calculate this tree's data_size instead.
-
-        Set this tree as the parent for each of its subtrees.
-
-        Precondition: if <name> is None, then <subtrees> is empty.
-        """
-        self.rect = (0, 0, 0, 0)
-        self._name = name
-        self._subtrees = subtrees[:]
-        self._parent_tree = None
-
-        # You will change this in Task 5
-        if len(self._subtrees) > 0:
-            self._expanded = True
-        else:
-            self._expanded = False
-
-        # TODO: (Task 1) Complete this initializer by doing two things:
-        # 1. Initialize self._colour and self.data_size, according to the
-        # docstring.
-        # 2. Set this tree as the parent for each of its subtrees.
-
-    def is_empty(self) -> bool:
-        """Return True iff this tree is empty.
-        """
-        return self._name is None
-
-    def update_rectangles(self, rect: Tuple[int, int, int, int]) -> None:
-        """Update the rectangles in this tree and its descendents using the
-        treemap algorithm to fill the area defined by pygame rectangle <rect>.
-        """
-        # TODO: (Task 2) Complete the body of this method.
-        # Read the handout carefully to help get started identifying base cases,
-        # then write the outline of a recursive step.
-        #
-        # Programming tip: use "tuple unpacking assignment" to easily extract
-        # elements of a rectangle, as follows.
-        # x, y, width, height = rect
-
-    def get_rectangles(self) -> List[Tuple[Tuple[int, int, int, int],
-                                           Tuple[int, int, int]]]:
-        """Return a list with tuples for every leaf in the displayed-tree
-        rooted at this tree. Each tuple consists of a tuple that defines the
-        appropriate pygame rectangle to display for a leaf, and the colour
-        to fill it with.
-        """
-        # TODO: (Task 2) Complete the body of this method.
-
-    def get_tree_at_position(self, pos: Tuple[int, int]) -> Optional[TMTree]:
-        """Return the leaf in the displayed-tree rooted at this tree whose
-        rectangle contains position <pos>, or None if <pos> is outside of this
-        tree's rectangle.
-
-        If <pos> is on the shared edge between two rectangles, return the
-        tree represented by the rectangle that is closer to the origin.
-        """
-        # TODO: (Task 3) Complete the body of this method
-
-    def update_data_sizes(self) -> int:
-        """Update the data_size for this tree and its subtrees, based on the
-        size of their leaves, and return the new size.
-
-        If this tree is a leaf, return its size unchanged.
-        """
-        # TODO: (Task 4) Complete the body of this method.
-
-    def move(self, destination: TMTree) -> None:
-        """If this tree is a leaf, and <destination> is not a leaf, move this
-        tree to be the last subtree of <destination>. Otherwise, do nothing.
-        """
-        # TODO: (Task 4) Complete the body of this method.
-
-    def change_size(self, factor: float) -> None:
-        """Change the value of this tree's data_size attribute by <factor>.
-
-        Always round up the amount to change, so that it's an int, and
-        some change is made.
-
-        Do nothing if this tree is not a leaf.
-        """
-        # TODO: (Task 4) Complete the body of this method
-
-    # TODO: (Task 5) Write the methods expand, expand_all, collapse, and
-    # TODO: collapse_all, and add the displayed-tree functionality to the
-    # TODO: methods from Tasks 2 and 3
-
-    # Methods for the string representation
-    def get_path_string(self, final_node: bool = True) -> str:
-        """Return a string representing the path containing this tree
-        and its ancestors, using the separator for this tree between each
-        tree's name. If <final_node>, then add the suffix for the tree.
-        """
-        if self._parent_tree is None:
-            path_str = self._name
-            if final_node:
-                path_str += self.get_suffix()
-            return path_str
-        else:
-            path_str = (self._parent_tree.get_path_string(False) +
-                        self.get_separator() + self._name)
-            if final_node or len(self._subtrees) == 0:
-                path_str += self.get_suffix()
-            return path_str
-
-    def get_separator(self) -> str:
-        """Return the string used to separate names in the string
-        representation of a path from the tree root to this tree.
-        """
-        raise NotImplementedError
-
-    def get_suffix(self) -> str:
-        """Return the string used at the end of the string representation of
-        a path from the tree root to this tree.
-        """
-        raise NotImplementedError
+    # Start an event loop to respond to events.
+    event_loop(screen, tree)
 
 
-class FileSystemTree(TMTree):
-    """A tree representation of files and folders in a file system.
+def render_display(screen: pygame.Surface, tree: Optional[TMTree],
+                   selected_node: Optional[TMTree],
+                   hover_node: Optional[TMTree]) -> None:
+    """Render a treemap and text display to the given screen.
 
-    The internal nodes represent folders, and the leaves represent regular
-    files (e.g., PDF documents, movie files, Python source code files, etc.).
-
-    The _name attribute stores the *name* of the folder or file, not its full
-    path. E.g., store 'assignments', not '/Users/Diane/csc148/assignments'
-
-    The data_size attribute for regular files is simply the size of the file,
-    as reported by os.path.getsize.
+    Use the constants TREEMAP_HEIGHT and FONT_HEIGHT to divide the
+    screen vertically into the treemap and text comments.
     """
+    # First, clear the screen
+    pygame.draw.rect(screen, pygame.color.THECOLORS['black'],
+                     (0, 0, WIDTH, HEIGHT))
 
-    def __init__(self, path: str) -> None:
-        """Store the file tree structure contained in the given file or folder.
+    subscreen = screen.subsurface((0, 0, WIDTH, TREEMAP_HEIGHT))
 
-        Precondition: <path> is a valid path for this computer.
-        """
-        # Remember that you should recursively go through the file system
-        # and create new FileSystemTree objects for each file and folder
-        # encountered.
-        #
-        # Also remember to make good use of the superclass constructor!
-        # TODO: (Task 1) Implement the initializer
+    # TODO: Uncomment this afer you have completed Task 2
+    # for rect, colour in tree.get_rectangles():
+        # Note that the arguments are in the opposite order
+        # pygame.draw.rect(subscreen, colour, rect)
 
-    def get_separator(self) -> str:
-        """Return the file separator for this OS.
-        """
-        return os.sep
+    # add the hover rectangle
+    if selected_node is not None:
+        pygame.draw.rect(subscreen, (255, 255, 255), selected_node.rect, 5)
+    if hover_node is not None:
+        pygame.draw.rect(subscreen, (255, 255, 255), hover_node.rect, 2)
 
-    def get_suffix(self) -> str:
-        """Return the final descriptor of this tree.
-        """
-        if len(self._subtrees) == 0:
-            return ' (file)'
+    # TODO: Uncomment this after you have completed Task 2
+    # _render_text(screen, _get_display_text(selected_node))
+
+    # This must be called *after* all other pygame functions have run.
+    pygame.display.flip()
+
+
+def _render_text(screen: pygame.Surface, text: str) -> None:
+    """Render text at the bottom of the display.
+    """
+    # The font we want to use
+    font = pygame.font.SysFont(FONT_FAMILY, FONT_HEIGHT - 8)
+    text_surface = font.render(text, 1, pygame.color.THECOLORS['white'])
+
+    # Where to render the text_surface
+    text_pos = (0, HEIGHT - FONT_HEIGHT + 4)
+    screen.blit(text_surface, text_pos)
+
+
+def event_loop(screen: pygame.Surface, tree: TMTree) -> None:
+    """Respond to events (mouse clicks, key presses) and update the display.
+
+    Note that the event loop is an *infinite loop*: it continually waits for
+    the next event, determines the event's type, and then updates the state
+    of the visualisation or the tree itself, updating the display if necessary.
+    This loop ends only when the user closes the window.
+    """
+    selected_node = None
+
+    while True:
+        # Wait for an event
+        event = pygame.event.poll()
+        if event.type == pygame.QUIT:
+            return
+
+        # get the hover position and the corresponding node
+        hover_node = tree.get_tree_at_position(pygame.mouse.get_pos())
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            selected_node = \
+                _handle_click(event.button, event.pos, tree, selected_node)
+
+        elif event.type == pygame.KEYUP and selected_node is not None:
+            if event.key == pygame.K_UP:
+                pass
+                # TODO: Uncomment once you have completed Task 4
+                # selected_node.change_size(0.01)
+                # tree.update_data_sizes()
+                # tree.update_rectangles((0, 0, WIDTH, HEIGHT - FONT_HEIGHT))
+
+            elif event.key == pygame.K_DOWN:
+                pass
+                # TODO: Uncomment once you have completed Task 4
+                # selected_node.change_size(-0.01)
+                # tree.update_data_sizes()
+                # tree.update_rectangles((0, 0, WIDTH, HEIGHT - FONT_HEIGHT))
+
+            elif event.key == pygame.K_m:
+                pass
+                # TODO: Uncomment once you have completed Task 4
+                # selected_node.move(hover_node)
+                # tree.update_data_sizes()
+                # tree.update_rectangles((0, 0, WIDTH, HEIGHT - FONT_HEIGHT))
+
+            elif event.key == pygame.K_e:
+                pass
+                # TODO: Uncomment once you have completed Task 5
+                # selected_node.expand()
+
+            elif event.key == pygame.K_a:
+                pass
+                # TODO: Uncomment once you have completed Task 5
+                # selected_node.expand_all()
+
+            elif event.key == pygame.K_c:
+                pass
+                # TODO: Uncomment once you have completed Task 5
+                # selected_node.collapse()
+
+            elif event.key == pygame.K_x:
+                pass
+                # TODO: Uncomment once you have completed Task 5
+                # selected_node.collapse_all()
+
+        # Update display
+        render_display(screen, tree, selected_node, hover_node)
+
+
+def _handle_click(button: int, pos: Tuple[int, int], tree: TMTree,
+                  old_selected_leaf: Optional[TMTree]) -> Optional[TMTree]:
+    """Return the new selection after handling the mouse event.
+
+    We need to use old_selected_leaf to handle the case when the selected
+    leaf is left-clicked again.
+    """
+    # TODO: Delete the line below after completing Task 3
+    return None
+
+    # left mouse click
+    if button == 1:
+        selected_leaf = tree.get_tree_at_position(pos)
+        if selected_leaf is None:
+            return old_selected_leaf
+        elif selected_leaf is old_selected_leaf:
+            return None
         else:
-            return ' (folder)'
+            return selected_leaf
+    # right click or any other click does nothing
+    else:
+        return old_selected_leaf
+
+
+def _get_display_text(leaf: Optional[TMTree]) -> str:
+    """Return the display text of this leaf.
+    """
+    if leaf is None:
+        return ''
+    else:
+        return leaf.get_path_string() + '  ({})'.format(leaf.data_size)
+
+
+def run_treemap_file_system(path: str) -> None:
+    """Run a treemap visualisation for the given path's file structure.
+
+    Precondition: <path> is a valid path to a file or folder.
+    """
+    file_tree = FileSystemTree(path)
+    run_visualisation(file_tree)
+
+
+def run_treemap_papers() -> None:
+    """Run a treemap visualization for CS Education research papers data.
+
+    You can try changing the value of the named argument by_year, but the
+    others should stay the same.
+    """
+    paper_tree = PaperTree('CS1', [], all_papers=True, by_year=False)
+    run_visualisation(paper_tree)
 
 
 if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
         'allowed-import-modules': [
-            'python_ta', 'typing', 'math', 'random', 'os', '__future__'
-        ]
+            'python_ta', 'typing', 'pygame', 'tm_trees', 'papers'
+        ],
+        'generated-members': 'pygame.*'
     })
+
+    # To check your work for Tasks 1-5, try uncommenting the following function
+    # call, with the '' replaced by a path like
+    # 'C:\\Users\\David\\Documents\\csc148\\assignments' (Windows) or
+    # '/Users/dianeh/Documents/courses/csc148/assignments' (OSX)
+    # run_treemap_file_system('')
+
+    # To check your work for Task 6, try uncommenting the following
+    # run_treemap_papers()
