@@ -20,7 +20,7 @@ to them.
 from typing import Optional, Tuple
 import pygame
 from tm_trees import TMTree, FileSystemTree
-from papers import PaperTree
+# from papers import PaperTree
 
 
 # Screen dimensions and coordinates
@@ -66,9 +66,9 @@ def render_display(screen: pygame.Surface, tree: Optional[TMTree],
     subscreen = screen.subsurface((0, 0, WIDTH, TREEMAP_HEIGHT))
 
     # TODO: Uncomment this afer you have completed Task 2
-    # for rect, colour in tree.get_rectangles():
+    for rect, colour in tree.get_rectangles():
         # Note that the arguments are in the opposite order
-        # pygame.draw.rect(subscreen, colour, rect)
+        pygame.draw.rect(subscreen, colour, rect)
 
     # add the hover rectangle
     if selected_node is not None:
@@ -212,8 +212,8 @@ def run_treemap_papers() -> None:
     You can try changing the value of the named argument by_year, but the
     others should stay the same.
     """
-    paper_tree = PaperTree('CS1', [], all_papers=True, by_year=False)
-    run_visualisation(paper_tree)
+    # paper_tree = PaperTree('CS1', [], all_papers=True, by_year=False)
+    # run_visualisation(paper_tree)
 
 
 if __name__ == '__main__':
@@ -229,7 +229,7 @@ if __name__ == '__main__':
     # call, with the '' replaced by a path like
     # 'C:\\Users\\David\\Documents\\csc148\\assignments' (Windows) or
     # '/Users/dianeh/Documents/courses/csc148/assignments' (OSX)
-    # run_treemap_file_system('')
+    run_treemap_file_system('C:\\Users\\Daniel Xu\\Desktop\\School\\csc148\\assignments\\a2\\example-directory')
 
     # To check your work for Task 6, try uncommenting the following
     # run_treemap_papers()
