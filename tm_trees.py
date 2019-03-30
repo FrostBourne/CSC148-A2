@@ -109,11 +109,8 @@ class TMTree:
             self._expanded = False
         self._colour = (randint(1, 255), randint(1, 255), randint(1, 255))
 
-        # Not sure if thats what task is asking
-        # setting size of tree to be total of size of all subtrees
         for s in self._subtrees:
             data_size += s.data_size
-            # can I do this? / this is part 2 setting this tree as parent
             s._parent_tree = self
         self.data_size = data_size
 
@@ -131,21 +128,44 @@ class TMTree:
         """Update the rectangles in this tree and its descendents using the
         treemap algorithm to fill the area defined by pygame rectangle <rect>.
         """
+        self.rect = rect
         x, y, width, height = rect
         if self.is_empty():
             return
-        elif self._subtrees ==[]:
+        elif self._subtrees == []:
             self.rect = x, y, width, height
         else:
-            for file in self._subtrees:
-                percent = file.data_size/self.data_size
-                rect_width = math.floor(percent * width)
-                if file is not self._subtrees[-1]:
-                    file.update_rectangles((x, y, rect_width, height))
-                    x += rect_width
+            for files in self._subtrees:
+                if self.data_size == 0:
+                    percent = 0
                 else:
-                    rect_width = width - x
-                    file.update_rectangles((x, y, rect_width, height))
+                    percent = files.data_size/self.data_size
+                if width > height:
+                    new_width = math.floor(percent * width)
+                    new_height = height
+                    x0 = x + new_width
+                    y0 = y
+                else:
+                    new_width = width
+                    new_height = math.floor(percent * height)
+                    x0 = x
+                    y0 = y + new_height
+                if files is not self._subtrees[-1]:
+                    files.update_rectangles((x, y, new_width, new_height))
+                elif width > height:
+                    new_width = width - x + self.rect[0]
+                    new_height = height
+                    x0 = x + new_width
+                    y0 = y
+                    files.update_rectangles((x, y, new_width, new_height))
+                else:
+                    new_height = height - y + self.rect[1]
+                    new_width = width
+                    x0 = x
+                    y0 = y + new_height
+                    files.update_rectangles((x, y, new_width, new_height))
+                x = x0
+                y = y0
 
         # TODO: (Task 2) Complete the body of this method.
         # Read the handout carefully to help get started identifying base cases,
@@ -163,6 +183,8 @@ class TMTree:
         to fill it with.
         """
         if self.is_empty():
+            return []
+        elif self.data_size == 0:
             return []
         elif self._subtrees == []:
             return [(self.rect, self._colour)]
