@@ -203,7 +203,17 @@ class TMTree:
         If <pos> is on the shared edge between two rectangles, return the
         tree represented by the rectangle that is closer to the origin.
         """
-        # TODO: (Task 3) Complete the body of this method
+        if self.is_empty():
+            return None
+        elif self.data_size == 0:
+            return None
+        elif self._subtrees == []:
+            return self
+        else:
+            for subtree in self._subtrees:
+                if ((subtree.rect[0] <= pos[0] <= (subtree.rect[0] + subtree.rect[2])) and
+                        (subtree.rect[1] <= pos[1] <= (subtree.rect[1] + subtree.rect[3]))):
+                    return subtree.get_tree_at_position(pos)
 
     def update_data_sizes(self) -> int:
         """Update the data_size for this tree and its subtrees, based on the
@@ -211,12 +221,32 @@ class TMTree:
 
         If this tree is a leaf, return its size unchanged.
         """
+        if self.is_empty():
+            return 0
+        elif self._subtrees == []:
+            return self.data_size
+        else:
+            size = 0
+            for s in self._subtrees:
+                size += s.update_data_sizes()
+                self.data_size = size
+            return size
         # TODO: (Task 4) Complete the body of this method.
 
     def move(self, destination: TMTree) -> None:
         """If this tree is a leaf, and <destination> is not a leaf, move this
         tree to be the last subtree of <destination>. Otherwise, do nothing.
         """
+        if self.is_empty():
+            return None
+        elif self._subtrees == []:
+            if destination._subtrees != []:
+                destination._subtrees.append(self)
+                self._parent_tree._subtrees.remove(self)
+            else:
+                return None
+        else:
+            return None
         # TODO: (Task 4) Complete the body of this method.
 
     def change_size(self, factor: float) -> None:
@@ -227,6 +257,15 @@ class TMTree:
 
         Do nothing if this tree is not a leaf.
         """
+        if self.is_empty():
+            return None
+        elif self._subtrees == []:
+            size = self.data_size
+            size += math.ceil(size * factor)
+            self.data_size = size
+            self.update_data_sizes()
+        else:
+            return None
         # TODO: (Task 4) Complete the body of this method
 
     # TODO: (Task 5) Write the methods expand, expand_all, collapse, and
