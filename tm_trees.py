@@ -103,10 +103,11 @@ class TMTree:
         self._parent_tree = None
 
         # You will change this in Task 5
-        if len(self._subtrees) > 0:
-            self._expanded = True
-        else:
-            self._expanded = False
+        # if len(self._subtrees) > 0:
+        #     self._expanded = True
+        # else:
+        #     self._expanded = False
+        self._expanded = False
         self._colour = (randint(1, 255), randint(1, 255), randint(1, 255))
 
         for s in self._subtrees:
@@ -166,7 +167,6 @@ class TMTree:
                     files.update_rectangles((x, y, new_width, new_height))
                 x = x0
                 y = y0
-
         # TODO: (Task 2) Complete the body of this method.
         # Read the handout carefully to help get started identifying base cases,
         # then write the outline of a recursive step.
@@ -188,6 +188,8 @@ class TMTree:
             return []
         elif self._subtrees == []:
             return [(self.rect, self._colour)]
+        elif not self._expanded:
+            return [(self.rect, self._colour)]
         else:
             a = []
             for s in self._subtrees:
@@ -203,16 +205,24 @@ class TMTree:
         If <pos> is on the shared edge between two rectangles, return the
         tree represented by the rectangle that is closer to the origin.
         """
-        if self.is_empty():
-            return None
-        elif self.data_size == 0:
-            return None
-        elif self._subtrees == []:
+        if self._subtrees == []:
+            return self
+        elif not self._expanded:
             return self
         else:
             for subtree in self._subtrees:
-                if ((subtree.rect[0] <= pos[0] <= (subtree.rect[0] + subtree.rect[2])) and
-                        (subtree.rect[1] <= pos[1] <= (subtree.rect[1] + subtree.rect[3]))):
+                if pos[0] == subtree.rect[0] or pos[0] == subtree.rect[0] + \
+                        subtree.rect[2]:
+                    return subtree.get_tree_at_position((pos[0] - 1, pos[1]))
+
+                elif pos[1] == subtree.rect[1] or pos[1] == subtree.rect[1] + \
+                        subtree.rect[3]:
+                    return subtree.get_tree_at_position((pos[0], pos[1] - 1))
+
+                elif ((subtree.rect[0] < pos[0] < (
+                        subtree.rect[0] + subtree.rect[2])) and
+                      (subtree.rect[1] < pos[1] < (
+                              subtree.rect[1] + subtree.rect[3]))):
                     return subtree.get_tree_at_position(pos)
 
     def update_data_sizes(self) -> int:
@@ -237,16 +247,10 @@ class TMTree:
         """If this tree is a leaf, and <destination> is not a leaf, move this
         tree to be the last subtree of <destination>. Otherwise, do nothing.
         """
-        if self.is_empty():
-            return None
-        elif self._subtrees == []:
+        if self._subtrees == []:
             if destination._subtrees != []:
                 destination._subtrees.append(self)
                 self._parent_tree._subtrees.remove(self)
-            else:
-                return None
-        else:
-            return None
         # TODO: (Task 4) Complete the body of this method.
 
     def change_size(self, factor: float) -> None:
@@ -257,20 +261,43 @@ class TMTree:
 
         Do nothing if this tree is not a leaf.
         """
-        if self.is_empty():
-            return None
-        elif self._subtrees == []:
+        if self._subtrees == []:
             size = self.data_size
             size += math.ceil(size * factor)
             self.data_size = size
             self.update_data_sizes()
-        else:
-            return None
         # TODO: (Task 4) Complete the body of this method
 
     # TODO: (Task 5) Write the methods expand, expand_all, collapse, and
     # TODO: collapse_all, and add the displayed-tree functionality to the
     # TODO: methods from Tasks 2 and 3
+
+    def expand(self) -> None:
+        """expands the selected folder
+        """
+        self._expanded = True
+
+    def expand_all(self) -> None:
+        """expands all folders
+        """
+        if self._subtrees == []:
+            self._expanded = True
+        else:
+            for s in self._subtrees:
+                s.expand_all()
+            self._expanded = True
+
+    def collapse(self) -> None:
+        """collapses selected tree"""
+        if self._parent_tree is not None:
+            self._parent_tree._expanded = False
+
+    def collapse_all(self) -> None:
+        """collapses all trees"""
+        if self._parent_tree is None:
+            self._expanded = False
+        else:
+            self._parent_tree.collapse_all()
 
     # Methods for the string representation
     def get_path_string(self, final_node: bool = True) -> str:
